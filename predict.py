@@ -15,10 +15,10 @@ face_mesh = mp_face_mesh.FaceMesh(
 )
 
 def predict_kantuk(model, scaler_model,  mar, opennes):
-    with open('svm_model.pkl', 'wb') as file:
+    with open(model, 'wb') as file:
         model = pickle.load(file)
     
-    with open('scaler_model.pkl', 'wb') as file:
+    with open(scaler_model, 'wb') as file:
         pickle.dump(scaler_model, file)
     
     # Prepare the data for prediction
@@ -108,6 +108,10 @@ fps = cap.get(cv2.CAP_PROP_FPS)
 delay_between_frames = int(1000 / fps)
 data_list = []
 
+model = 'model.pkl'
+scaler_model = 'scaler_model.pkl'
+
+
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
@@ -134,7 +138,9 @@ while cap.isOpened():
  
             mar = mouth_aspect_ratio(landmarks)
 
-            data_list.append([cap.get(cv2.CAP_PROP_POS_FRAMES), openness, mar])   
+            data_list.append([cap.get(cv2.CAP_PROP_POS_FRAMES), openness, mar])  
+
+            y = predict_kantuk(model, scaler_model, mar, openness) 
             # Display the openness and the binary eye image
             cv2.imshow('Left Eye Binary', left_binary_eye)
             cv2.imshow('Right Eye Binary', right_binary_eye)
