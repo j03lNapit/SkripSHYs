@@ -2,6 +2,10 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import csv
+import pickle
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+import os
 
 mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh(
@@ -10,8 +14,21 @@ face_mesh = mp_face_mesh.FaceMesh(
     min_detection_confidence=0.5
 )
 
-def predict(model, mar, opennes):
+def predict_kantuk(model, scaler_model,  mar, opennes):
+    with open('svm_model.pkl', 'wb') as file:
+        model = pickle.load(file)
     
+    with open('scaler_model.pkl', 'wb') as file:
+        pickle.dump(scaler_model, file)
+    
+    # Prepare the data for prediction
+    data = np.array([[mar, opennes]])
+    data_scaled = scaler_model.transform(data)
+    
+    # Predict using the SVM model
+    prediction = model.predict(data_scaled)
+    
+    return prediction
 
 
 def eye_openness(eye_region):
