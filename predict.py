@@ -14,19 +14,20 @@ face_mesh = mp_face_mesh.FaceMesh(
     min_detection_confidence=0.5
 )
 
-def predict_kantuk(model, scaler_model,  mar, opennes):
-    with open(model, 'wb') as file:
+def predict_kantuk(model_path, scaler_model_path,  mar, opennes):
+
+    with open(model_path, 'rb') as file:
         model = pickle.load(file)
     
-    with open(scaler_model, 'wb') as file:
-        pickle.dump(scaler_model, file)
+    with open(scaler_model_path, 'rb') as file:
+        scaler_model = pickle.load(file)
     
     # Prepare the data for prediction
     data = np.array([[mar, opennes]])
     data_scaled = scaler_model.transform(data)
-    
+    print(data_scaled)
     # Predict using the SVM model
-    prediction = model.predict(data_scaled)
+    prediction = model.predict(data)
     
     return prediction
 
@@ -94,22 +95,25 @@ LipsUpperOuter = [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291]
 LipsLowerOuter = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291]
 
 
-video_path = r"F:\SKRIPSI\TA\DROZY\videos_i8\6-1.mp4"  # Use the correct path or 0 for webcam
+# video_path = r"F:\SKRIPSI\TA\DROZY\videos_i8\6-1.mp4"  # Use the correct path or 0 for webcam
+video_path = 0
 cap = cv2.VideoCapture(video_path)
 
-# Get the base name of the video file without the extension
-video_basename = os.path.basename(video_path)
-video_title, _ = os.path.splitext(video_basename)
+# # Get the base name of the video file without the extension
+# video_basename = os.path.basename(video_path)
+# video_title, _ = os.path.splitext(video_basename)
 
-# Define the CSV file name based on the video title
-csv_filename = f"{video_title}_data_analysis.csv"
+# # Define the CSV file name based on the video title
+# csv_filename = f"{video_title}_data_analysis.csv"
+
+csv_filename = os.path.join('data_real_time', 'data.csv')
 
 fps = cap.get(cv2.CAP_PROP_FPS)
 delay_between_frames = int(1000 / fps)
 data_list = []
 
-model = 'model.pkl'
-scaler_model = 'scaler_model.pkl'
+model = 'models/model_rbf.pkl'
+scaler_model = 'models/scaler.pkl'
 
 
 while cap.isOpened():
@@ -148,6 +152,7 @@ while cap.isOpened():
            # cv2.putText(image, f'Right Eye Openness: {right_openness:.2f}', (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             cv2.putText(frame, f'Eye Openness: {openness:.2f}', (10, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0),1)
             cv2.putText(frame, f'MAR: {mar:.2f}', (10, 65), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 1)
+            cv2.putText(frame, f'Kantuk: {y}', (10, 95), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 1)
 
     else:
         # No landmarks detected, so set values to None or np.nan
@@ -159,6 +164,7 @@ while cap.isOpened():
 
 cap.release()
 cv2.destroyAllWindows()
+
 with open(csv_filename, 'w', newline='') as csvfile:
     csvwriter = csv.writer(csvfile)
     # Write the header
@@ -167,4 +173,4 @@ with open(csv_filename, 'w', newline='') as csvfile:
     csvwriter.writerows(data_list)
     print(f"Data saved to {csv_filename}")
 
-print(f"Processed {frame_number} frames from {video_title}")
+# print(f"Processed {frame_number} frames from {video_title}")
